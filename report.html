@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Report Issue - Punjab Smart Transport</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f8f9fa;
+    }
+    h2 {
+      color: #333;
+      text-align: center;
+    }
+    form {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .back-btn {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>📝 Report an Issue</h2>
+
+  <form onsubmit="submitReport(event)">
+    <label for="route">Bus Number / Route:</label>
+    <input type="text" id="route" placeholder="e.g., Bus 12A" required>
+
+    <label for="issue">Issue Type:</label>
+    <select id="issue" required>
+      <option value="">-- Select Issue --</option>
+      <option>Overcrowding</option>
+      <option>Delay</option>
+      <option>Breakdown</option>
+      <option>Driver Behavior</option>
+      <option>Other</option>
+    </select>
+
+    <label for="comments">Additional Comments:</label>
+    <textarea id="comments" rows="4" placeholder="Write details here..."></textarea>
+
+    <button type="submit">Submit Report</button>
+  </form>
+
+  <a href="index.html" class="back-btn">⬅ Back to Home</a>
+
+  <script>
+    // Add Firebase SDK imports
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
+// Your Firebase Config
+const firebaseConfig = {
+    // ... your config details
+  apiKey: "AIzaSyDM47srCvzovVLjRXi1t8TXxluv4ESitlQ",
+  authDomain: "punjab-transport-541fb.firebaseapp.com",
+  databaseURL: "https://punjab-transport-541fb-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "punjab-transport-541fb",
+  storageBucket: "punjab-transport-541fb.firebasestorage.app",
+  messagingSenderId: "380542155569",
+  appId: "1:380542155569:web:989c8169e3ea616cc54e10",
+  measurementId: "G-JMS40DKSCY"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+function submitReport(e) {
+  e.preventDefault();
+
+  const route = document.getElementById("route").value;
+  const issue = document.getElementById("issue").value;
+  const comments = document.getElementById("comments").value;
+  const lat = localStorage.getItem("userLat");
+  const lng = localStorage.getItem("userLng");
+
+  // Create report data
+  const report = { 
+    route, 
+    issue, 
+    comments, 
+    location: { lat, lng },
+    time: new Date().toISOString()
+  };
+
+  // ✅ Push the data to Firebase
+  const reportsRef = ref(db, 'reports');
+  push(reportsRef, report)
+    .then(() => {
+      alert(`✅ Report submitted!`);
+      document.querySelector("form").reset();
+    })
+    .catch((error) => {
+      console.error("Error submitting report: ", error);
+      alert("❌ Failed to submit report. Please try again.");
+    });
+}
+  </script>
+</body>
+</html>

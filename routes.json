@@ -1,0 +1,156 @@
+{
+  "routes": {
+    "Warangal_City_1": {
+      "route_id": "WRG_001",
+      "stops": [
+        {
+          "id": "WRG_001_01",
+          "name": "Warangal Fort",
+          "lat": 17.9784,
+          "lon": 79.5941
+        },
+        {
+          "id": "WRG_001_02",
+          "name": "Kazipet Railway Station",
+          "lat": 17.9844,
+          "lon": 79.5308
+        },
+        {
+          "id": "WRG_001_03",
+          "name": "Hanamkonda Bus Stand",
+          "lat": 17.9934,
+          "lon": 79.5581
+        }
+      ]
+    },
+    "Karimnagar_City_1": {
+      "route_id": "KNR_001",
+      "stops": [
+        {
+          "id": "KNR_001_01",
+          "name": "Lower Manair Dam",
+          "lat": 18.4264,
+          "lon": 79.1548
+        },
+        {
+          "id": "KNR_001_02",
+          "name": "Karimnagar Bus Stand",
+          "lat": 18.4386,
+          "lon": 79.1288
+        },
+        {
+          "id": "KNR_001_03",
+          "name": "Collectorate Karimnagar",
+          "lat": 18.4447,
+          "lon": 79.1403
+        }
+      ]
+    },
+    "Khammam_City_1": {
+      "route_id": "KHM_001",
+      "stops": [
+        {
+          "id": "KHM_001_01",
+          "name": "Khammam Fort",
+          "lat": 17.2473,
+          "lon": 80.1514
+        },
+        {
+          "id": "KHM_001_02",
+          "name": "Khammam Bus Stand",
+          "lat": 17.2520,
+          "lon": 80.1500
+        },
+        {
+          "id": "KHM_001_03",
+          "name": "Wyra Road",
+          "lat": 17.2555,
+          "lon": 80.1455
+        }
+      ]
+    },
+    "Nizamabad_City_1": {
+      "route_id": "NZB_001",
+      "stops": [
+        {
+          "id": "NZB_001_01",
+          "name": "Nizamabad Railway Station",
+          "lat": 18.6725,
+          "lon": 78.0940
+        },
+        {
+          "id": "NZB_001_02",
+          "name": "Armoor Chowrasta",
+          "lat": 18.7872,
+          "lon": 78.2940
+        },
+        {
+          "id": "NZB_001_03",
+          "name": "Nizamabad Bus Stand",
+          "lat": 18.6721,
+          "lon": 78.0947
+        }
+      ]
+    },
+    "Mahbubnagar_City_1": {
+      "route_id": "MBN_001",
+      "stops": [
+        {
+          "id": "MBN_001_01",
+          "name": "Mahbubnagar Bus Stand",
+          "lat": 16.7480,
+          "lon": 77.9855
+        },
+        {
+          "id": "MBN_001_02",
+          "name": "Raja Rameshwar Temple",
+          "lat": 16.7355,
+          "lon": 77.9878
+        },
+        {
+          "id": "MBN_001_03",
+          "name": "Collector Office",
+          "lat": 16.7455,
+          "lon": 77.9921
+        }
+      ]
+    }
+  },
+  "buses": {
+    "bus_201": {
+      "currentStop": "Hanamkonda Bus Stand",
+      "lastUpdated": "2025-09-12T06:00:00.000Z",
+      "lat": 17.9934,
+      "lon": 79.5581,
+      "route": "Warangal_City_1"
+    },
+    "bus_202": {
+      "currentStop": "Karimnagar Bus Stand",
+      "lastUpdated": "2025-09-12T06:05:00.000Z",
+      "lat": 18.4386,
+      "lon": 79.1288,
+      "route": "Karimnagar_City_1"
+    },
+    "bus_203": {
+      "currentStop": "Khammam Bus Stand",
+      "lastUpdated": "2025-09-12T06:10:00.000Z",
+      "lat": 17.2520,
+      "lon": 80.1500,
+      "route": "Khammam_City_1"
+    },
+    "bus_204": {
+      "currentStop": "Nizamabad Railway Station",
+      "lastUpdated": "2025-09-12T06:15:00.000Z",
+      "lat": 18.6725,
+      "lon": 78.0940,
+      "route": "Nizamabad_City_1"
+    },
+    "bus_205": {
+      "currentStop": "Mahbubnagar Bus Stand",
+      "lastUpdated": "2025-09-12T06:20:00.000Z",
+      "lat": 16.7480,
+      "lon": 77.9855,
+      "route": "Mahbubnagar_City_1"
+    }
+  }
+}

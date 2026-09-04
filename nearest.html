@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nearest Bus Stops</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f8f9fa;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .back-btn {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>📍 Nearest Bus Stop</h2>
+  <div id="map"></div>
+
+  <a href="index.html" class="back-btn">⬅ Back to Home</a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
+    // Your Firebase Config
+    const firebaseConfig = {
+      // ... your config details
+      apiKey: "AIzaSyDM47srCvzovVLjRXi1t8TXxluv4ESitlQ",
+      authDomain: "punjab-transport-541fb.firebaseapp.com",
+      databaseURL: "https://punjab-transport-541fb-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "punjab-transport-541fb",
+      storageBucket: "punjab-transport-541fb.firebasestorage.app",
+      messagingSenderId: "380542155569",
+      appId: "1:380542155569:web:989c8169e3ea616cc54e10",
+      measurementId: "G-JMS40DKSCY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const userLat = parseFloat(localStorage.getItem("userLat"));
+    const userLng = parseFloat(localStorage.getItem("userLng"));
+
+    if (isNaN(userLat) || isNaN(userLng)) {
+      alert("❌ Location not available. Please enable location on the Home page first.");
+      window.location.href = 'index.html';
+    }
+
+    // Haversine formula to calculate distance
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radius of Earth in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    async function findNearestStop() {
+      const map = L.map('map').setView([userLat, userLng], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      L.marker([userLat, userLng]).addTo(map).bindPopup("You are here").openPopup();
+
+      let nearest = null;
+      let minDist = Infinity;
+
+      const dbRef = ref(db);
+      const snapshot = await get(child(dbRef, "routes"));
+
+      if (snapshot.exists()) {
+        const allRoutes = snapshot.val();
+        Object.keys(allRoutes).forEach(routeName => {
+          allRoutes[routeName].stops.forEach(stop => {
+            const dist = getDistance(userLat, userLng, stop.lat, stop.lon);
+            if (dist < minDist) {
+              minDist = dist;
+              nearest = stop;
+            }
+            // Add a marker for every stop
+            L.circleMarker([stop.lat, stop.lon], { radius: 5, color: "blue" })
+              .bindPopup(stop.name)
+              .addTo(map);
+          });
+        });
+      }
+
+      if (nearest) {
+        L.marker([nearest.lat, nearest.lon], {
+          icon: L.icon({
+            iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+            iconSize: [25, 41]
+          })
+        }).addTo(map).bindPopup(`<b>Nearest Stop:</b> ${nearest.name}<br>Distance: ${minDist.toFixed(2)} km`);
+      }
+    }
+
+    window.onload = findNearestStop;
+  </script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TransitX - Telangana Bus Tracker</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f5f7fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      background: #1565c0;
+      color: white;
+      width: 100%;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .controls {
+      margin: 20px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    select, button {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      min-width: 150px;
+    }
+
+    button {
+      background: #1565c0;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #003c8f;
+    }
+
+    #map {
+      height: 550px;
+      width: 95%;
+      margin: 20px auto;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    #busList, #busDetails {
+      margin: 15px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      width: 90%;
+    }
+
+    #busList h3, #busDetails h3 {
+      margin-top: 0;
+      color: #1565c0;
+    }
+
+    .bus-card {
+      margin: 8px 0;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+
+    .bus-card button {
+      margin-top: 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>TransitX</header>
+
+  <div class="controls">
+    <label for="from">From:</label>
+    <select id="from"></select>
+
+    <label for="to">To:</label>
+    <select id="to"></select>
+
+    <button id="searchBtn">Search Route</button>
+  </div>
+
+  <div id="map"></div>
+
+  <div id="busList">
+    <h3>Active Buses</h3>
+    <div id="busListContent">Select a route to see buses</div>
+  </div>
+
+  <div id="busDetails">
+    <h3>Bus Details</h3>
+    <div id="busDetailsContent">Select a bus to see details</div>
+  </div>
+
+  <!-- Leaflet scripts -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getDatabase, ref, get, child, onValue, off } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDM47srCvzovVLjRXi1t8TXxluv4ESitlQ",
+      authDomain: "punjab-transport-541fb.firebaseapp.com",
+      databaseURL: "https://punjab-transport-541fb-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "punjab-transport-541fb",
+      storageBucket: "punjab-transport-541fb.firebasedata.app",
+      messagingSenderId: "380542155569",
+      appId: "1:380542155569:web:989c8169e3ea616cc54e10",
+      measurementId: "G-JMS40DKSCY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const fromDropdown = document.getElementById("from");
+    const toDropdown = document.getElementById("to");
+    const busListContent = document.getElementById("busListContent");
+    const busDetailsContent = document.getElementById("busDetailsContent");
+
+    const map = L.map('map').setView([17.385, 78.4867], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    let allRoutes = {};
+    let stopsList = {}; 
+    let routeLines = [];
+    let busMarkers = {};
+    let busesRef;
+
+    // Load routes from Firebase
+    async function loadRoutes() {
+      const dbRef = ref(db);
+      try {
+        const snapshot = await get(child(dbRef, "routes"));
+        if (snapshot.exists()) {
+          allRoutes = snapshot.val();
+
+          Object.keys(allRoutes).forEach(routeName => {
+            allRoutes[routeName].stops.forEach(stop => {
+              // Avoid duplicate stops
+              if (!stopsList[stop.name]) {
+                stopsList[stop.name] = [];
+                
+                let option1 = document.createElement("option");
+                option1.value = stop.name;
+                option1.textContent = stop.name;
+                fromDropdown.appendChild(option1);
+
+                let option2 = document.createElement("option");
+                option2.value = stop.name;
+                option2.textContent = stop.name;
+                toDropdown.appendChild(option2);
+              }
+              stopsList[stop.name].push({ route: routeName, lat: stop.lat, lon: stop.lon });
+
+              // Stop markers
+              L.circleMarker([stop.lat, stop.lon], { radius: 6, color: "gray" })
+                .bindPopup(stop.name)
+                .addTo(map);
+            });
+          });
+        }
+      } catch (err) {
+        console.error("Error loading routes:", err);
+      }
+    }
+    loadRoutes();
+
+    // Draw route polyline
+    function drawRoute(from, to, routeStops) {
+      routeLines.forEach(line => map.removeLayer(line));
+      routeLines = [];
+
+      const startIndex = routeStops.findIndex(s => s.name === from);
+      const endIndex = routeStops.findIndex(s => s.name === to);
+      if (startIndex === -1 || endIndex === -1) return;
+
+      const selectedStops = routeStops.slice(
+        Math.min(startIndex, endIndex),
+        Math.max(startIndex, endIndex) + 1
+      );
+
+      const latlngs = selectedStops.map(s => [s.lat, s.lon]);
+      const polyline = L.polyline(latlngs, { color: "blue", weight: 4 }).addTo(map);
+      routeLines.push(polyline);
+
+      selectedStops.forEach((s, i) => {
+        L.circleMarker([s.lat, s.lon], {
+          radius: 8,
+          color: i === 0 ? "green" : (i === selectedStops.length - 1 ? "red" : "orange"),
+          fillOpacity: 0.9
+        }).bindPopup(`${s.name} (${i === 0 ? "Start" : i === selectedStops.length - 1 ? "End" : "Intermediate"})`)
+          .addTo(map);
+      });
+
+      map.fitBounds(polyline.getBounds());
+    }
+
+    // Realistic ETA using routing machine
+    function calculateETA(fromStop, toStop) {
+      return new Promise((resolve) => {
+        L.Routing.control({
+          waypoints: [
+            L.latLng(fromStop.lat, fromStop.lon),
+            L.latLng(toStop.lat, toStop.lon)
+          ],
+          show: false,
+          addWaypoints: false,
+          routeWhileDragging: false
+        }).on('routesfound', function(e) {
+          const route = e.routes[0];
+          const duration = Math.round(route.summary.totalTime / 60); // minutes
+          resolve(`${duration} min (approx)`);
+        }).addTo(map);
+      });
+    }
+
+    // Track buses
+    function trackBuses(from, to, routeName) {
+      // Remove previous listener
+      if (busesRef) off(busesRef);
+      busesRef = ref(db, "buses");
+
+      onValue(busesRef, snapshot => {
+        if (!snapshot.exists()) return;
+        const buses = snapshot.val();
+        let activeBuses = [];
+
+        Object.keys(buses).forEach(busId => {
+          const bus = buses[busId];
+          if (bus.route !== routeName) return;
+
+          const routeStops = allRoutes[routeName].stops.map(s => s.name);
+          if (routeStops.includes(from) && routeStops.includes(to)) {
+            activeBuses.push({ busId, ...bus });
+
+            if (busMarkers[busId]) {
+              busMarkers[busId].setLatLng([bus.lat, bus.lon]);
+            } else {
+              busMarkers[busId] = L.marker([bus.lat, bus.lon], {
+                
+              }).bindPopup(`🚌 Bus ${busId}`).addTo(map);
+            }
+          }
+        });
+
+        busListContent.innerHTML = activeBuses.length === 0
+          ? "No active buses for this route."
+          : activeBuses.map(bus => `
+            <div class="bus-card">
+              <b>Bus ID:</b> ${bus.busId} <br>
+              <b>Current Stop:</b> ${bus.currentStop || "N/A"} <br>
+              <button onclick="window.selectBus('${bus.busId}')">View Details</button>
+            </div>
+          `).join("");
+
+        window.activeBuses = activeBuses.reduce((acc, b) => { acc[b.busId] = b; return acc; }, {});
+      });
+    }
+
+    // Bus details
+    window.selectBus = async function(busId) {
+      const bus = window.activeBuses[busId];
+      if (!bus) return;
+
+      const routeName = bus.route;
+      const routeStops = allRoutes[routeName] ? allRoutes[routeName].stops : [];
+
+      // ETA
+      let eta = "N/A";
+      const fromStop = routeStops.find(s => s.name === bus.currentStop);
+      const toStop = routeStops[routeStops.length - 1];
+      if (fromStop && toStop) eta = await calculateETA(fromStop, toStop);
+
+      const stopsHtml = routeStops.map(s => `<li>${s.name}</li>`).join("");
+
+      busDetailsContent.innerHTML = `
+        <p><b>Bus ID:</b> ${busId}</p>
+        <p><b>Route:</b> ${routeName}</p>
+        <p><b>Current Stop:</b> ${bus.currentStop || "N/A"}</p>
+        <p><b>Last Updated:</b> ${bus.lastUpdated ? new Date(bus.lastUpdated).toLocaleString() : "N/A"}</p>
+        <p><b>ETA to End Stop:</b> ${eta}</p>
+        <hr>
+        <h4>Stops on Route:</h4>
+        <ul>${stopsHtml}</ul>
+      `;
+
+      if (busMarkers[busId]) {
+        map.setView(busMarkers[busId].getLatLng(), 14);
+        busMarkers[busId].openPopup();
+      }
+    };
+
+    // Handle search
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const from = fromDropdown.value;
+      const to = toDropdown.value;
+      if (!from || !to) return alert("Please select both From and To stops!");
+
+      // Pick the route common to both stops
+      const fromRoutes = stopsList[from].map(s => s.route);
+      const toRoutes = stopsList[to].map(s => s.route);
+      const commonRoute = fromRoutes.find(r => toRoutes.includes(r));
+      if (!commonRoute) return alert("Selected stops are not on the same route.");
+
+      drawRoute(from, to, allRoutes[commonRoute].stops);
+      trackBuses(from, to, commonRoute);
+    });
+  </script>
+</body>
+</html>

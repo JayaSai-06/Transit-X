@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TransitX Prototype</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <img src="logo.jpg" alt="TransitX Logo" class="logo">
+    <div>
+      <h1>TransitX</h1>
+      <p class="tagline">Making Transport Smarter & Faster 🚍</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="container">
+    
+    <!-- Location card -->
+    <div class="status-card">
+      <p id="locationStatus">📍 Detecting your location...</p>
+    </div>
+
+    <!-- Buttons (Menu) -->
+    <div class="menu">
+      <a href="nearest.html"><button class="blue">🪧 Nearest Bus Stops</button></a>
+      <a href="routes.html"><button class="blue">🚌 Search Routes</button></a>
+      <a href="report.html"><button class="orange">⚠️ Report Issue</button></a>
+      <a href="emergency.html"><button class="red">🚨 Emergency</button></a>
+    </div>
+
+    <!-- Feature highlights -->
+    <div class="features">
+      <div class="feature-card">✅ Real-time Bus Tracking</div>
+      <div class="feature-card">🚌 Smart Route Suggestions</div>
+      <div class="feature-card">🚨 Quick Emergency Support</div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer>
+    © 2025 TransitX. All rights reserved.
+  </footer>
+
+  <!-- Location detection script -->
+  <script>
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          document.getElementById("locationStatus").innerText = 
+            `✅ Location detected: (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+          localStorage.setItem("userLat", lat);
+          localStorage.setItem("userLng", lng);
+        },
+        err => {
+          document.getElementById("locationStatus").innerText = "❌ Location access denied";
+        }
+      );
+    } else {
+      document.getElementById("locationStatus").innerText = "⚠️ Geolocation not supported";
+    }
+  </script>
+</body>
+</html>

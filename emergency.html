@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emergency - Punjab Smart Transport</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff3f3;
+      margin: 20px;
+    }
+    h2 {
+      color: #b30000;
+      text-align: center;
+    }
+    .contacts {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    p {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+    a {
+      color: #007bff;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #d9534f;
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    button:hover {
+      background: #b52b27;
+    }
+    .back-btn {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>🚨 Emergency Help</h2>
+
+  <div class="contacts">
+    <p>📞 Police: <a href="tel:100">100</a></p>
+    <p>🚑 Ambulance: <a href="tel:108">108</a></p>
+    <p>🔥 Fire Service: <a href="tel:101">101</a></p>
+
+    <button onclick="sendSOS()">📍 Send My Location to Authorities</button>
+  </div>
+
+  <a href="index.html" class="back-btn">⬅ Back to Home</a>
+
+  <script>
+    // Add Firebase SDK imports
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
+// Your Firebase Config
+const firebaseConfig = {
+  // ... your config details from routes.html
+  apiKey: "AIzaSyDM47srCvzovVLjRXi1t8TXxluv4ESitlQ",
+  authDomain: "punjab-transport-541fb.firebaseapp.com",
+  databaseURL: "https://punjab-transport-541fb-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "punjab-transport-541fb",
+  storageBucket: "punjab-transport-541fb.firebasestorage.app",
+  messagingSenderId: "380542155569",
+  appId: "1:380542155569:web:989c8169e3ea616cc54e10",
+  measurementId: "G-JMS40DKSCY"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+function sendSOS() {
+  const lat = localStorage.getItem("userLat");
+  const lng = localStorage.getItem("userLng");
+
+  if (!lat || !lng) {
+    alert("❌ Location not available. Please enable location on Home page.");
+    return;
+  }
+
+  // Create SOS data
+  const sos = {
+    location: { lat: parseFloat(lat), lng: parseFloat(lng) },
+    time: new Date().toISOString()
+  };
+
+  // ✅ Push the data to Firebase
+  const sosRef = ref(db, 'sos_alerts');
+  push(sosRef, sos)
+    .then(() => {
+      alert(`✅ SOS Alert Sent!\n\nLocation: (${lat}, ${lng})`);
+    })
+    .catch((error) => {
+      console.error("Error sending SOS: ", error);
+      alert("❌ Failed to send SOS. Please try again.");
+    });
+}
+  </script>
+</body>
+</html>
